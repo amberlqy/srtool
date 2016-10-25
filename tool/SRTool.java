@@ -26,6 +26,7 @@ public class SRTool {
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		SimpleCParser parser = new SimpleCParser(tokens);
 		ProgramContext ctx = parser.program();
+	
 		if(parser.getNumberOfSyntaxErrors() > 0) {
 			System.exit(1);
 		}
@@ -45,7 +46,7 @@ public class SRTool {
 		for(ProcedureDeclContext proc : ctx.procedures) {//global var 
 			VCGenerator vcgen = new VCGenerator(proc);
 			String vc = vcgen.generateVC().toString();
-			System.out.println(vc);
+			System.out.println(vc);						// print SMT file
 			ProcessExec process = new ProcessExec("z3", "-smt2", "-in");
 			String queryResult = "";
 			try {
