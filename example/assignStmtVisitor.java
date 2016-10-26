@@ -89,27 +89,43 @@ public class assignStmtVisitor extends SimpleCBaseVisitor<Void>{
 					i = j;
 				}
 			}
-			if(s.equals("/"))
+			if(s.equals("/")){
 				s = "div";
+				String divisor = getLastIndexId(preSeq.get(i+2));
+				//System.out.println(divisor);
+				String value_true = getLastIndexId(preSeq.get(i+1));
+				//System.out.println(divir);
+				String value_false = getLastIndexId(id);
+				assignStmtOne = "(ite(= "+divisor+" 0) " + value_true +" "+ value_false +")";
+				
+			}
 			if(s.equals("%"))
 				s = "mod";
 			if(assignStmtOne == null)
 				assignStmtOne = s;
+			else if(assignStmtOne.contains("ite")){
+				assignStmtOne = assignStmtOne;
+			}
 			else
 				assignStmtOne = assignStmtOne + " " + s;
 			
 		}//right side
 		increaseVarIndex(id);
-		if(!assignStmtOne.contains(" ")){
+		if(assignStmtOne.contains("ite") || !assignStmtOne.contains(" ")){
 			assignStmtOne = "(assert (= " + getLastIndexId(id) + " " + assignStmtOne + "))";
 		}
-		else
+/*		if(!assignStmtOne.contains(" ")){
+			assignStmtOne = "(assert (= " + getLastIndexId(id) + " " + assignStmtOne + "))";
+		}*/
+		else{
 			assignStmtOne = "(assert (= " + getLastIndexId(id) + " (" + assignStmtOne + ")))";
+		}
+			
 		return assignStmtOne;
 	}
 	
 	public void midToPre(String midSeq){
-		//preSeq = null;
+		preSeq.clear();
 		Stack<String> op = new Stack<>();
 		Stack<String> result = new Stack<>();
 		//String midSeq = ctx.expr().getText();
@@ -204,7 +220,7 @@ public class assignStmtVisitor extends SimpleCBaseVisitor<Void>{
 			result.push(op.pop());
 		}
 		while(!result.isEmpty()){
-			System.out.println(result.peek());
+			//System.out.println(result.peek());
 			preSeq.add(result.pop());	
 		}
 		//return pre;
