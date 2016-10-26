@@ -5,11 +5,7 @@ int foo() {
 
     int x;
     int y;
-    x = 5;
-    y = x - x;
-    int z;
-    z = x / 0;
-    assert z == 5;
+    x = x + (!y);
     return 0;
 
 }

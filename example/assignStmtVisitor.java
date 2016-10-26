@@ -8,11 +8,12 @@ import example.declVisitor;
 
 public class assignStmtVisitor extends SimpleCBaseVisitor<Void>{
 	
-	private String preSeq;
+	private ArrayList<String> preSeq = new ArrayList<>();
 	private String assignStmt;
 	private Map<String,Integer> varIndex = new HashMap<String,Integer>();
 	private String declaration;
 	private ArrayList<String> varList = new ArrayList<>();
+	private String num = "0123456789";
 	
 	@Override
 	public Void visitVarDecl(VarDeclContext ctx){
@@ -44,7 +45,7 @@ public class assignStmtVisitor extends SimpleCBaseVisitor<Void>{
 	public String getdecla(){
 		return declaration;
 	}
-	public String getPreSeq(){
+	public ArrayList getPreSeq(){
 		return preSeq;
 	}
 	
@@ -77,15 +78,14 @@ public class assignStmtVisitor extends SimpleCBaseVisitor<Void>{
 		//String preSeq = midToPre(right);
 		String assignStmtOne = null ;//one row
 		//System.out.println(preSeq);
-		String num = "0123456789";
-		for(int i = 0;i < preSeq.length();i++){
-			String s = String.valueOf(preSeq.charAt(i));
+		for(int i = 0;i < preSeq.size();i++){
+			String s = preSeq.get(i);
 			if(idArray.contains(s)){
 				s = getLastIndexId(s);
 			}
 			if(num.contains(s)){
-				for(int j = i+1;j < preSeq.length() && num.contains(String.valueOf(preSeq.charAt(j)));j++){
-					s = s + String.valueOf(preSeq.charAt(j));
+				for(int j = i+1;j < preSeq.size() && num.contains(preSeq.get(j));j++){
+					s = s + String.valueOf(preSeq.get(j));
 					i = j;
 				}
 			}
@@ -109,21 +109,27 @@ public class assignStmtVisitor extends SimpleCBaseVisitor<Void>{
 	}
 	
 	public void midToPre(String midSeq){
-		preSeq = null;
+		//preSeq = null;
 		Stack<String> op = new Stack<>();
 		Stack<String> result = new Stack<>();
 		//String midSeq = ctx.expr().getText();
 		for(int i = midSeq.length()-1;i>=0;i--){
 			String s = String.valueOf(midSeq.charAt(i));
+			String next = null;
+			if(i>0){
+				next = String.valueOf(midSeq.charAt(i-1));
+			}
 			switch(s){
 			case ")":
 				op.push(s);
+				result.push(s);
 				//System.out.println(op.peek());
 				break;
 			case "(":
 				while(!op.peek().equals(")")){
 					result.push(op.pop());
 				}
+				result.push("(");
 				op.pop();
 				break;
 			case "/":
@@ -133,18 +139,60 @@ public class assignStmtVisitor extends SimpleCBaseVisitor<Void>{
 				break;
 			case "+":
 			case "-":
-				while(!op.isEmpty() && (op.peek() == "/" || op.peek() == "*" || op.peek() == "%")){
+				while(!op.isEmpty() && (op.peek().equals("/") || op.peek().equals("*") || op.peek().equals("%"))){
 					result.push(op.pop());
 				}
 				op.push(s);
 				break;
 			case ">":
 			case "<":
+				if(next.equals(">") || next.equals("<")){
+					System.out.println("?");
+					i--;
+					s = next + s;
+					while(!op.isEmpty() && (op.peek().equals("/") || op.peek().equals("*") || op.peek().equals("%") || 
+							op.peek().equals("+") || op.peek().equals("-"))){
+						result.push(op.pop());
+					}
+				}
+				else{
+					while(!op.isEmpty() && (op.peek() == "/" || op.peek() == "*" || op.peek() == "%" || 
+							op.peek() == "+" || op.peek() == "-" || op.peek() == ">>" || op.peek() == "<<")){
+						result.push(op.pop());
+					}					
+				}
+				op.push(s);
+				break;
+			case "=":
 				i--;
-				s = s + String.valueOf(midSeq.charAt(i));
+				s = next + s;
+				if(next == ">" || next == "<"){      //>=,<=
+					while(!op.isEmpty() && (op.peek() == "/" || op.peek() == "*" || op.peek() == "%" || 
+							op.peek() == "+" || op.peek() == "-" || op.peek() == ">>" || op.peek() == "<<")){
+						result.push(op.pop());
+					}
+				}
+				else{ // !=,==
+					while(!op.isEmpty() && (op.peek() == "/" || op.peek() == "*" || op.peek() == "%" || 
+							op.peek() == "+" || op.peek() == "-" || op.peek() == ">>" || op.peek() == "<<"
+							|| op.peek() == "<" || op.peek() == ">" || op.peek() == "<=" || op.peek() == ">=")){
+						result.push(op.pop());
+					}					
+				}
+				op.push(s);
+				break;
+			case "&":
+			case "|":
+			case "^":
+				if(next.equals("|") || next.equals("&")){
+					i--;
+					s = next + s;
+				}
 				while(!op.isEmpty() && (op.peek() == "/" || op.peek() == "*" || op.peek() == "%" || 
-						op.peek() == "+" || op.peek() == "-")){
-					result.push(s);
+						op.peek() == "+" || op.peek() == "-" || op.peek() == ">>" || op.peek() == "<<"
+						|| op.peek() == "<" || op.peek() == ">" || op.peek() == "<=" || op.peek() == ">="
+						|| op.peek() == "==" || op.peek() == "!=")){
+					result.push(op.pop());
 				}
 				op.push(s);
 				break;
@@ -155,12 +203,9 @@ public class assignStmtVisitor extends SimpleCBaseVisitor<Void>{
 		while(!op.isEmpty()){
 			result.push(op.pop());
 		}
-		while(!result.isEmpty()){ //add x0 and assertion
-			if(preSeq == null){
-				preSeq = result.pop();
-			}
-			else
-				preSeq = preSeq + result.pop();
+		while(!result.isEmpty()){
+			System.out.println(result.peek());
+			preSeq.add(result.pop());	
 		}
 		//return pre;
 		
