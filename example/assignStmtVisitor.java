@@ -12,7 +12,16 @@ public class assignStmtVisitor extends SimpleCBaseVisitor<Void>{
 	private String assignStmt;
 	private Map<String,Integer> varIndex = new HashMap<String,Integer>();
 	private String declaration;
+	private ArrayList<String> varList = new ArrayList<>();
 	
+	@Override
+	public Void visitVarDecl(VarDeclContext ctx){
+		String s = ctx.ID().getText();
+		//System.out.println(s);
+		varList.add(s);
+		return null;
+		
+	}
 	public String getassignStmt(){
 		return assignStmt;
 	}
@@ -20,16 +29,16 @@ public class assignStmtVisitor extends SimpleCBaseVisitor<Void>{
 	public Void visitAssignStmt(SimpleCParser.AssignStmtContext ctx){
 		//System.out.println(ctx.expr().getChild(0).getText());
 		//midToPre(ctx);
-		ArrayList<String> test= new ArrayList<String>();
-		test.add("x");
+		//ArrayList<String> test= new ArrayList<String>();
+		//test.add("x");
 		String left = ctx.ID().getText();
 		String right = ctx.expr().getText();
 		midToPre(right);
 		if(assignStmt == null){
-			assignStmt = setAssignStmt(test,left) + "\n";
+			assignStmt = setAssignStmt(varList,left) + "\n";
 		}
 		else 
-			assignStmt = assignStmt + setAssignStmt(test,left) + "\n";
+			assignStmt = assignStmt + setAssignStmt(varList,left) + "\n";
 		return null;
 	}
 	public String getdecla(){
@@ -68,11 +77,22 @@ public class assignStmtVisitor extends SimpleCBaseVisitor<Void>{
 		//String preSeq = midToPre(right);
 		String assignStmtOne = null ;//one row
 		//System.out.println(preSeq);
+		String num = "0123456789";
 		for(int i = 0;i < preSeq.length();i++){
 			String s = String.valueOf(preSeq.charAt(i));
 			if(idArray.contains(s)){
 				s = getLastIndexId(s);
 			}
+			if(num.contains(s)){
+				for(int j = i+1;j < preSeq.length() && num.contains(String.valueOf(preSeq.charAt(j)));j++){
+					s = s + String.valueOf(preSeq.charAt(j));
+					i = j;
+				}
+			}
+			if(s.equals("/"))
+				s = "div";
+			if(s.equals("%"))
+				s = "mod";
 			if(assignStmtOne == null)
 				assignStmtOne = s;
 			else
@@ -80,7 +100,7 @@ public class assignStmtVisitor extends SimpleCBaseVisitor<Void>{
 			
 		}//right side
 		increaseVarIndex(id);
-		if(assignStmtOne.length() == 1){
+		if(!assignStmtOne.contains(" ")){
 			assignStmtOne = "(assert (= " + getLastIndexId(id) + " " + assignStmtOne + "))";
 		}
 		else

@@ -1,7 +1,15 @@
-int foo(){	
-int x;
-//x=1+((2+3)*4)-5;
-x = 0;
-x = x + 1;
-return 0;
+// RUN: %tool "%s" > "%t"
+// RUN: %diff %CORRECT "%t"
+
+int foo() {
+
+    int x;
+    int y;
+    x = 5;
+    y = x - x;
+    int z;
+    z = x / 0;
+    assert z == 5;
+    return 0;
+
 }

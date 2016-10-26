@@ -23,15 +23,17 @@ public class VCGenerator {
 		
 		declVis.visit(proc);
 		assignStmtVis.visit(proc);
-		StringBuilder result = new StringBuilder("(set-logic QF_LIA)\n");
+		StringBuilder result = new StringBuilder("(set-logic QF_NIA)\n");
 
 		for(int i = 0 ; i<declVis.getIDArray().size() ; i++){
 			String s = "(declare-fun " + declVis.getIDArray().get(i) +" () Int)" + "\n";
 			result.append(s);
 		}
 		result.append(assignStmtVis.getdecla());
+		
 		result.append(assignStmtVis.getassignStmt());
-		//System.out.println(assignStmtVis.getPreSeq());
+		//result.append("(assert (= z1 ( / 501 0)))");
+		//result.append("(assert (not (= z1 0)))");
 		// TODO: generate the meat of the VC
 		result.append("\n(check-sat)\n");
 		return result;

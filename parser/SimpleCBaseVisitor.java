@@ -280,4 +280,8 @@ public class SimpleCBaseVisitor<T> extends AbstractParseTreeVisitor<T> implement
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public T visitOldExpr(SimpleCParser.OldExprContext ctx) { return visitChildren(ctx); }
+	public T visitAssignStmt(AssignStmtContext ctx, declVisitor del) {
+		// TODO Auto-generated method stub
+		return visitChildren(ctx);
+	}
 }
